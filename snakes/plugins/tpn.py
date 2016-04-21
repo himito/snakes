@@ -1,24 +1,49 @@
 # -*- coding: utf-8 -*-
+"""
+    >>> nets = snakes.plugins.load('tpn', 'snakes.nets', 'nets')
+    >>> from nets import *
+    >>> n = PetriNet('timed')
+    >>> n.add_place(Place('p', ['dot']))
+    >>> n.add_transition(Transition('t', min_time=1.0, max_time=2.0))
+    >>> t = n.transition('t')
+    >>> n.add_input('p', 't', Value('dot'))
+    >>> n.reset()
+    >>> n.time(0.5)
+    0.5
+    >>> t.time, t.enabled(Substitution())
+    (0.5, False)
+    >>> n.time(1.0)
+    0.5
+    >>> t.time, t.enabled(Substitution())
+    (1.0, True)
+    >>> n.time(1.0)
+    1.0
+    >>> t.time, t.enabled(Substitution())
+    0.0
+    (2.0, True)
+    >>> n.time(1.0)
+"""
+from snakes.nets import ConstraintError
 from snakes.plugins import plugin
-from snakes.typing import *
-from snakes.data import *
+from snakes.typing import tAll
+from snakes.data import MultiSet, iterate
 
 
 @plugin("snakes.nets")
 def extend(module):
     class Transition(module.Transition):
         def __init__(self, name, guard=None, **kwargs):
-            self.time = None                            # elapsed time
+            self.time = None                              # elapsed time
             self.min_time = kwargs.pop('min_time', 0.0)   # min duration
             self.max_time = kwargs.pop('max_time', None)  # max duration
             module.Transition.__init__(self, name, guard, **kwargs)
 
         def enabled(self, binding, **kwargs):
-            if kwargs.pop("untimed", False):
+            if kwargs.pop("untimed", False):  # untimed transition
                 return module.Transition.enabled(self, binding)
-            elif self.time is None:
+            elif self.time is None:  # it's not enabled by places
                 return False
-            elif self.max_time is None:
+            elif self.max_time is None:  # maximum duration is not bounded
                 return (self.time >= self.min_time) \
                     and module.Transition.enabled(self, binding)
             else:
@@ -112,7 +137,7 @@ def extend(module):
                 elif trans.time <= trans.max_time:
                     step = min(step, trans.max_time - trans.time)
                 else:
-                    raise ConstraintError, '%s overtimed' % repr(trans.name)
+                    raise ConstraintError('%s overtimed' % trans.name)
             for trans in enabled:
                 trans.time += step
             return step

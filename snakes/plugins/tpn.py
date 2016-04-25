@@ -19,14 +19,12 @@
     >>> n.time(1.0)
     1.0
     >>> t.time, t.enabled(Substitution())
-    0.0
     (2.0, True)
     >>> n.time(1.0)
+    0.0
 """
 from snakes.nets import ConstraintError
 from snakes.plugins import plugin
-from snakes.typing import tAll
-from snakes.data import MultiSet, iterate
 
 
 @plugin("snakes.nets")
@@ -50,16 +48,11 @@ def extend(module):
                 return (self.min_time <= self.time <= self.max_time) \
                     and module.Transition.enabled(self, binding)
 
-    class Place (module.Place):
+    class Place(module.Place):
         def __init__(self, name, tokens=[], check=None):
-            self.name = name
-            self.tokens = MultiSet()
-            if check is None:
-                self._check = tAll
-            else:
-                self._check = check
-            self.check(iterate(tokens))
-            self.tokens.add(iterate(tokens))
+            self.post = {}
+            self.pre = {}
+            module.Place.__init__(self, name, tokens, check)
 
         def reset(self, tokens):
             module.Place.reset(self, tokens)
@@ -97,7 +90,7 @@ def extend(module):
                     if len(trans.modes()) == 0:
                         trans.time = None
 
-    class PetriNet (module.PetriNet):
+    class PetriNet(module.PetriNet):
         def reset(self):
             self.set_marking(self.get_marking())
 
@@ -137,9 +130,8 @@ def extend(module):
                 elif trans.time <= trans.max_time:
                     step = min(step, trans.max_time - trans.time)
                 else:
-                    raise ConstraintError('%s overtimed' % trans.name)
+                    raise ConstraintError("%r overtimed" % trans.name)
             for trans in enabled:
                 trans.time += step
             return step
-
     return Transition, Place, PetriNet

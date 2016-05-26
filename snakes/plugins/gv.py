@@ -130,7 +130,10 @@ class Graph (Cluster) :
                                     "-o" + filename, outfile.name],
                                    stdin=subprocess.PIPE)
         else :
-            dot = subprocess.Popen([os.getcwd()+"/"+engine, "-T" + filename.rsplit(".", 1)[-1],
+            folder = ""
+            if os.path.basename(os.getcwd()) == 'Resources':
+                folder=os.getcwd()+"/"
+            dot = subprocess.Popen([folder+engine, "-T" + filename.rsplit(".", 1)[-1],
                                     "-o" + filename, outfile.name],
                                    stdin=subprocess.PIPE,
                                    stdout=subprocess.PIPE,

@@ -250,8 +250,17 @@ def extend (module) :
                         place_attr(node, attr)
                 else :
                     node = self.transition(name)
-                    attr = dict(shape="rectangle",
-                                label="%s\\n%s" % (node.name, str(node.guard)))
+                    if hasattr(node, 'time'):
+                        attr = dict(shape="rectangle",
+                                    label="%s\\n%s\\n[%s,%s]" % (
+                                        node.name,
+                                        str(node.guard),
+                                        node.min_time,
+                                        "&#8734;" if node.max_time is None else node.max_time))
+                    else:
+                        attr = dict(shape="rectangle",
+                                    label="%s\\n%s" % (node.name,
+                                                       str(node.guard)))
                     if trans_attr :
                         trans_attr(node, attr)
                 attr["tooltip"] = node.name

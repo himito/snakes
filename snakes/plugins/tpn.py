@@ -49,10 +49,10 @@ def extend(module):
                     and module.Transition.enabled(self, binding)
 
     class Place(module.Place):
-        def __init__(self, name, tokens=[], check=None):
+        def __init__(self, name, tokens=[], check=None, **kwargs):
             self.post = {}
             self.pre = {}
-            module.Place.__init__(self, name, tokens, check)
+            module.Place.__init__(self, name, tokens, check, **kwargs)
 
         def reset(self, tokens):
             module.Place.reset(self, tokens)

@@ -24,8 +24,8 @@
     0.0
 """
 from snakes.nets import ConstraintError
-from snakes.plugins import plugin
-
+from snakes.plugins import plugin, new_instance
+from snakes.pnml import Tree, SnakesError
 
 @plugin("snakes.nets")
 def extend(module):
@@ -47,6 +47,35 @@ def extend(module):
             else:
                 return (self.min_time <= self.time <= self.max_time) \
                     and module.Transition.enabled(self, binding)
+
+        def __pnmldump__ (self):
+            t = module.Transition.__pnmldump__(self)
+
+            t.add_child(Tree("min_time", None, Tree.from_obj(self.min_time)))
+
+            if self.max_time is not None:
+                t.add_child(Tree("max_time", None,
+                                 Tree.from_obj(self.max_time)))
+
+            return t
+
+        @classmethod
+        def __pnmlload__ (cls, tree) :
+            result = new_instance(cls, module.Transition.__pnmlload__(tree))
+
+            # time
+            result.time = None
+
+            # minimum duration
+            result.min_time = tree.child("min_time").child().to_obj()
+
+            # maximum duration
+            try :
+                result.max_time = tree.child("max_time").child().to_obj()
+            except SnakesError :
+                result.max_time = None
+
+            return result
 
     class Place(module.Place):
         def __init__(self, name, tokens=[], check=None, **kwargs):

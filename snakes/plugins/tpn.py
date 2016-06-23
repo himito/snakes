@@ -67,7 +67,10 @@ def extend(module):
             result.time = None
 
             # minimum duration
-            result.min_time = tree.child("min_time").child().to_obj()
+            try :
+                result.min_time = tree.child("min_time").child().to_obj()
+            except SnakesError :
+                result.min_time = 0.0
 
             # maximum duration
             try :

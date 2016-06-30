@@ -36,6 +36,14 @@ def extend(module):
             self.max_time = kwargs.pop('max_time', None)  # max duration
             module.Transition.__init__(self, name, guard, **kwargs)
 
+        def __repr__ (self) :
+            return "{}({}, {}, 'min_time={}, max_time={}')".format(
+                self.__class__.__name__,
+                repr(self.name),
+                repr(self.guard),
+                str(self.min_time),
+                str(self.max_time))
+
         def enabled(self, binding, **kwargs):
             if kwargs.pop("untimed", False):  # untimed transition
                 return module.Transition.enabled(self, binding)

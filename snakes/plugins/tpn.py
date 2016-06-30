@@ -37,7 +37,7 @@ def extend(module):
             module.Transition.__init__(self, name, guard, **kwargs)
 
         def __repr__ (self) :
-            return "{}({}, {}, 'min_time={}, max_time={}')".format(
+            return "{}({}, {}, min_time={}, max_time={})".format(
                 self.__class__.__name__,
                 repr(self.name),
                 repr(self.guard),
@@ -112,13 +112,18 @@ def extend(module):
             return dict((name, self.net.transition(name).time is not None)
                         for name in self.post)
 
+        def _pre_enabled(self, t):
+            return not any([p.is_empty() for (p,e) in t.input()])
+
         def add(self, tokens):
             enabled = self._post_enabled()
             module.Place.add(self, tokens)
             for name in self.post:
                 if not enabled[name]:
                     trans = self.net.transition(name)
-                    if len(trans.modes()) > 0:
+                    # if len(trans.modes()) > 0:
+                    #     trans.time = 0.0
+                    if self._pre_enabled(trans):
                         trans.time = 0.0
 
         def remove(self, tokens):
@@ -127,7 +132,9 @@ def extend(module):
             for name in self.post:
                 if enabled[name]:
                     trans = self.net.transition(name)
-                    if len(trans.modes()) == 0:
+                    # if len(trans.modes()) == 0:
+                    #     trans.time = None
+                    if not self._pre_enabled(trans):
                         trans.time = None
 
     class PetriNet(module.PetriNet):
